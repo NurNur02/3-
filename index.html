@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Виртуальный музей: Солнечная система — 3D Космос | Полноэкранный гид</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <script async src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script async src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <style>
+        /* ГЛОБАЛЬНЫЙ РЕСЕТ — АДАПТИВНОСТЬ 100% */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at 10% 20%, #0c0b14, #030202);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* ГЛАВНЫЙ КОНТЕЙНЕР — РАСТЯГИВАЕТСЯ НА 100% ШИРИНЫ, НО С ЭЛЕГАНТНЫМИ ОТСТУПАМИ */
+        .museum-universe {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #FCF9F4;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+            transition: all 0.2s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* при больших экранах — изящная рамка */
+        @media (min-width: 1400px) {
+            .museum-universe {
+                margin: 24px auto;
+                border-radius: 48px;
+                box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,215,170,0.2);
+                min-height: calc(100vh - 48px);
+            }
+        }
+
+        /* ХЕДЕР — ДЫШИТ */
+        .museum-header {
+            background: #1A262C;
+            padding: 1.2rem 2rem;
+            border-bottom: 1px solid rgba(230, 200, 155, 0.3);
+        }
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .back-button {
+            background: rgba(250, 240, 220, 0.1);
+            border: 1px solid #C9AD87;
+            color: #FCE9D8;
+            font-size: 1.8rem;
+            width: 54px;
+            height: 54px;
+            border-radius: 60px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            font-weight: 600;
+        }
+        .back-button:hover {
+            background: #4F3A2A;
+            transform: scale(0.96);
+        }
+        .header-texts .header-title {
+            font-size: clamp(1.6rem, 5vw, 2.4rem);
+            font-weight: 800;
+            color: #FFF3E4;
+            letter-spacing: -0.01em;
+        }
+        .header-sub {
+            font-size: 0.9rem;
+            color: #CBBFAB;
+            margin-top: 6px;
+        }
+
+        /* ОСНОВНАЯ ЗОНА КОНТЕНТА — FLEX + GRID, РЕЗИНОВАЯ */
+        .page-content {
+            padding: 2rem 2rem 2.5rem;
+            flex: 1;
+            background: #FCF9F4;
+        }
+
+        /* СЕТКИ */
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.8rem;
+        }
+        .section-row {
+            background: white;
+            border-radius: 2rem;
+            padding: 1.6rem 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1.3rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid #E7DED2;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.02);
+        }
+        .section-row:hover {
+            transform: translateY(-6px);
+            border-color: #BB8F64;
+            box-shadow: 0 20px 30px -12px rgba(0,0,0,0.2);
+        }
+        .section-icon {
+            width: 70px;
+            height: 70px;
+            background: #F1E9DF;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.6rem;
+        }
+        .section-label {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1C282E;
+        }
+        .section-range {
+            font-size: 0.85rem;
+            color: #826F59;
+            margin-top: 5px;
+        }
+
+        /* экспонаты (планеты/спутники) */
+        .exhibit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.6rem;
+        }
+        .exhibit-row {
+            background: white;
+            border-radius: 1.8rem;
+            padding: 1.2rem 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            cursor: pointer;
+            border: 1px solid #E2D6C8;
+            transition: all 0.2s;
+        }
+        .exhibit-row:hover {
+            background: #FFFCF8;
+            border-color: #B5804C;
+            transform: scale(1.01);
+            box-shadow: 0 10px 18px -8px rgba(0,0,0,0.12);
+        }
+        .exhibit-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 1.2rem;
+            object-fit: cover;
+            background: #EADDCB;
+        }
+        .exhibit-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2C241E;
+        }
+
+        /* ДЕТАЛЬНАЯ СТРАНИЦА — ГИБКАЯ ДВУХКОЛОНКА */
+        .detail-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .info-model-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        .detail-card {
+            flex: 1.2;
+            min-width: 260px;
+            background: #FFFFFF;
+            border-radius: 2rem;
+            overflow: hidden;
+            border: 1px solid #E5D9CD;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+        }
+        .detail-top {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.8rem 1.8rem 0 1.8rem;
+            flex-wrap: wrap;
+        }
+        .detail-img {
+            width: 140px;
+            height: 140px;
+            border-radius: 1.5rem;
+            object-fit: cover;
+            background: #DCCEBE;
+        }
+        .detail-name {
+            font-size: clamp(1.6rem, 4vw, 2.4rem);
+            font-weight: 800;
+            color: #1f1a14;
+        }
+        .detail-location {
+            background: #EDE3D8;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            width: fit-content;
+            font-weight: 500;
+        }
+        .detail-desc {
+            padding: 1.5rem 2rem 2rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #3F352C;
+            border-top: 1px solid #F0E6DB;
+            margin-top: 0.8rem;
+        }
+
+        /* 3D ВИЗОР — ДИНАМИЧЕСКАЯ ВЫСОТА */
+        .model-viewer-container {
+            flex: 2;
+            min-width: 320px;
+            background: #101215;
+            border-radius: 2rem;
+            overflow: hidden;
+            border: 1px solid #DAC6AE;
+            box-shadow: 0 20px 35px -10px black;
+            position: relative;
+            height: clamp(480px, 60vh, 700px);
+        }
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 20%, #1B2228, #080A0C);
+        }
+        .model-controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            background: rgba(20, 20, 25, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 80px;
+            padding: 0.7rem 1.2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: center;
+            border: 1px solid rgba(210, 180, 140, 0.5);
+            z-index: 15;
+        }
+        .model-btn {
+            background: #302C27;
+            border: none;
+            color: #F7EADB;
+            padding: 0.5rem 1rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.1s linear;
+            font-family: inherit;
+        }
+        .model-btn.active {
+            background: #B56A32;
+            color: white;
+            box-shadow: 0 0 0 1px #FFDDB0;
+        }
+        .model-btn:hover {
+            background: #624A34;
+            transform: scale(0.96);
+        }
+
+        /* БЛОК ИНСТРУКЦИЙ */
+        .gesture-instructions {
+            background: #FCF5EA;
+            border-left: 8px solid #BD7A44;
+            border-radius: 1.5rem;
+            padding: 1.3rem 1.8rem;
+            margin-top: 0.5rem;
+        }
+        .instructions-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #78451F;
+        }
+        .instruction-item {
+            font-size: 0.9rem;
+            color: #4E3E2E;
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+        }
+
+        /* ОКНО КАМЕРЫ (ПЛАВАЮЩЕЕ) */
+        .camera-preview {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 210px;
+            height: 160px;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 3px solid #D9B48B;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.5);
+            background: #000;
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+        .camera-preview.active {
+            display: block;
+        }
+        #inputVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        .gesture-status {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(0,0,0,0.75);
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #C8FF9C;
+            font-family: monospace;
+            letter-spacing: 0.3px;
+        }
+
+        /* RESPONSIVE ДЛЯ ПЛАНШЕТОВ И ТЕЛЕФОНОВ */
+        @media (max-width: 780px) {
+            .page-content {
+                padding: 1.2rem;
+            }
+            .model-viewer-container {
+                height: 460px;
+                min-width: auto;
+            }
+            .camera-preview {
+                width: 140px;
+                height: 110px;
+                bottom: 18px;
+                right: 18px;
+            }
+            .section-icon {
+                width: 55px;
+                height: 55px;
+                font-size: 2rem;
+            }
+            .section-label {
+                font-size: 1.2rem;
+            }
+            .model-controls {
+                gap: 0.4rem;
+            }
+            .model-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.7rem;
+            }
+        }
+        @media (max-width: 550px) {
+            .detail-top {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .detail-location {
+                margin: 0 auto;
+            }
+            .model-controls {
+                flex-wrap: wrap;
+                border-radius: 28px;
+            }
+        }
+        .chevron {
+            margin-left: auto;
+            font-size: 1.8rem;
+            color: #B69B76;
+        }
+        button {
+            background: none;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<div class="museum-universe" id="museumRoot"></div>
+<div class="camera-preview" id="cameraPreview">
+    <video id="inputVideo" playsinline autoplay muted></video>
+    <div class="gesture-status" id="gestureStatus">🟢 Инициализация</div>
+</div>
+
+<script>
+    (function() {
+        // ------------------- КОЛЛЕКЦИЯ ------------------
+        const PH = "https://placehold.co/400x400/DCC8B2/8B5A2B?text=✨Космос";
+        const sections = [
+            { id: "stars", label: "⭐ ЗВЁЗДЫ", icon: "☀️", range: "Солнце — главная звезда" },
+            { id: "planets", label: "🪐 ПЛАНЕТЫ", icon: "🪐", range: "8 миров Солнечной системы" },
+            { id: "satellites", label: "🌙 СПУТНИКИ", icon: "🌙", range: "Луна и компаньоны" }
+        ];
+
+        const exhibits = {
+            stars: [
+                { id: 0, code: "STR-01", name: "Солнце", period: "Жёлтый карлик", loc: "Центр", img: "https://i.pinimg.com/736x/e1/bb/7c/e1bb7c2cdf15ce161eb0f2b538ee5604.jpg", desc: "Звезда, дающая жизнь. Температура короны достигает миллиона градусов.", model3d: "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/s/Sun_1_1391000.glb" }
+            ],
+            planets: [
+                { id: 1, name: "Меркурий", period: "Планета", loc: "1-я планета", img: "https://i.pinimg.com/1200x/ec/a4/37/eca43749218b05ddfc2f267441ee8ebf.jpg", desc: "Самая быстрая планета, испещрена кратерами.", model3d: "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/m/Mercury_1_4878.glb" },
+                { id: 2, name: "Венера", period: "Планета", loc: "2-я", img: "https://i.pinimg.com/1200x/97/0c/ab/970caba57eada6db45a6f13ae4933195.jpg", desc: "Атмосфера из серной кислоты, самое горячее место.", model3d: "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/v/Venus_1_12103.glb" },
+                { id: 3, name: "Земля", period: "Планета", loc: "3-я", img: "https://i.pinimg.com/1200x/c7/07/9f/c7079f1e2ae773f7027b09547e8ba791.jpg", desc: "Голубая жемчужина, единственная известная жизнь.", model3d: "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/e/Earth_1_12756.glb" },
+                { id: 4, name: "Марс", period: "Планета", loc: "4-я", img: "https://i.pinimg.com/1200x/cb/51/ec/cb51ec080bbbb36611ad681e9f2195b9.jpg", desc: "Красные пустыни, гора Олимп — высочайшая в системе.", model3d: "https://assets.science.nasa.gov/content/dam/science/psd/mars/resources/gltf_files/24881_Mars_1_6792.glb" },
+                { id: 5, name: "Юпитер", period: "Планета", loc: "5-я", img: "https://i.pinimg.com/736x/63/91/76/639176baac5a210feba640fd8a67fe5a.jpg", desc: "Газовый гигант, Большое красное пятно — шторм века.", model3d: "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/j/Jupiter_1_142984.glb" },
+                { id: 6, name: "Сатурн", period: "Планета", loc: "6-я", img: "https://i.pinimg.com/736x/d3/48/93/d34893a45dfbb775e9a80506ef98b7da.jpg", desc: "Легендарные кольца из льда и пыли.", model3d: "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/s/Saturn_1_120536.glb" },
+                { id: 7, name: "Уран", period: "Планета", loc: "7-я", img: "https://i.pinimg.com/1200x/8e/30/26/8e30267c68b4302bb6f83445055945cb.jpg", desc: "Ледяной гигант, вращается на боку.", model3d: "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/u/Uranus_1_51118.glb" },
+                { id: 8, name: "Нептун", period: "Планета", loc: "8-я", img: "https://i.pinimg.com/736x/b1/d5/54/b1d554eb297687c072379b6681065dc7.jpg", desc: "Самые сильные ветры в Солнечной системе.", model3d: "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/n/Neptune_1_49528.glb" }
+            ],
+            satellites: [
+                { id: 9, name: "Луна", period: "Спутник", loc: "Орбита Земли", img: "https://i.pinimg.com/736x/ae/ec/74/aeec74e5342a9ae1035de8dc9d30c383.jpg", desc: "Ближайшее к нам небесное тело, влияет на приливы.", model3d: "https://assets.science.nasa.gov/content/dam/science/psd/solar/2023/09/m/Moon_1_3474.glb" }
+            ]
+        };
+
+        // ------ State ------
+        let currentState = { screen: "home", activeSectionId: null, activeExhibit: null };
+        let gestureEnabled = false;
+        let handsModule = null, cameraCtrl = null, videoElem = null;
+        let gestureLast = { lastX: null, lastY: null, lastZoomTime: 0 };
+
+        const CAM_LIM = { minR: 0.55, maxR: 9.2, minPhi: 0.12, maxPhi: Math.PI - 0.12 };
+
+        function getModel() { return document.getElementById('modelViewer'); }
+
+        function safeUpdateOrbit(dTheta = 0, dPhi = 0, radiusMult = null) {
+            const mv = getModel();
+            if (!mv) return;
+            try {
+                let orb = mv.getCameraOrbit();
+                let newTheta = orb.theta + dTheta;
+                let newPhi = Math.min(CAM_LIM.maxPhi, Math.max(CAM_LIM.minPhi, orb.phi + dPhi));
+                let newRad = orb.radius;
+                if (radiusMult !== null) newRad = Math.min(CAM_LIM.maxR, Math.max(CAM_LIM.minR, orb.radius * radiusMult));
+                mv.cameraOrbit = `${newTheta}rad ${newPhi}rad ${newRad}m`;
+            } catch(e) { console.warn(e); }
+        }
+
+        window.rotateLeft = () => safeUpdateOrbit(-0.55, 0);
+        window.rotateRight = () => safeUpdateOrbit(0.55, 0);
+        window.rotateUp = () => safeUpdateOrbit(0, -0.32);
+        window.rotateDown = () => safeUpdateOrbit(0, 0.32);
+        window.zoomIn = () => safeUpdateOrbit(0, 0, 0.86);
+        window.zoomOut = () => safeUpdateOrbit(0, 0, 1.18);
+
+        // ------------------- ОТРИСОВКА (АДАПТИВ) ------------------
+        function render() {
+            const root = document.getElementById('museumRoot');
+            root.innerHTML = `
+                <div class="museum-header">
+                    <div class="header-row">
+                        <button class="back-button" id="globalBackBtn">←</button>
+                        <div class="header-texts">
+                            <div class="header-title">🌌 ВИРТУАЛЬНЫЙ МУЗЕЙ КОСМОСА</div>
+                            <div class="header-sub">3D-экспонаты · Управление жестами · 4K-модели</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="dynamicPageContainer" class="page-content"></div>
+            `;
+            const container = document.getElementById('dynamicPageContainer');
+            if (currentState.screen === "home") container.appendChild(renderHome());
+            else if (currentState.screen === "list") container.appendChild(renderList());
+            else if (currentState.screen === "detail") container.appendChild(renderDetail());
+            
+            const backBtn = document.getElementById('globalBackBtn');
+            if (backBtn) {
+                backBtn.style.visibility = currentState.screen === "home" ? "hidden" : "visible";
+                backBtn.onclick = () => goBack();
+            }
+        }
+
+        function renderHome() {
+            const grid = document.createElement('div');
+            grid.className = 'section-grid';
+            sections.forEach(sec => {
+                const card = document.createElement('div');
+                card.className = 'section-row';
+                card.innerHTML = `
+                    <div class="section-icon">${sec.icon}</div>
+                    <div>
+                        <div class="section-label">${sec.label}</div>
+                        <div class="section-range">${sec.range}</div>
+                    </div>
+                    <div class="chevron">›</div>
+                `;
+                card.onclick = () => {
+                    currentState = { screen: "list", activeSectionId: sec.id, activeExhibit: null };
+                    render();
+                };
+                grid.appendChild(card);
+            });
+            return grid;
+        }
+
+        function renderList() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'exhibit-grid';
+            const items = exhibits[currentState.activeSectionId] || [];
+            items.forEach(ex => {
+                const card = document.createElement('div');
+                card.className = 'exhibit-row';
+                card.innerHTML = `
+                    <img class="exhibit-img" src="${ex.img}" onerror="this.src='${PH}'" alt="${ex.name}">
+                    <div>
+                        <div class="exhibit-name">${ex.name}</div>
+                        <div style="font-size: 0.75rem; color:#7A6853;">${ex.period || 'Объект'}</div>
+                    </div>
+                    <div class="chevron">›</div>
+                `;
+                card.onclick = () => {
+                    currentState.screen = "detail";
+                    currentState.activeExhibit = ex;
+                    render();
+                };
+                wrapper.appendChild(card);
+            });
+            return wrapper;
+        }
+
+        function renderDetail() {
+            const ex = currentState.activeExhibit;
+            if (!ex) return document.createElement('div');
+            const detailDiv = document.createElement('div');
+            detailDiv.className = 'detail-layout';
+            detailDiv.innerHTML = `
+                <div class="info-model-row">
+                    <div class="detail-card">
+                        <div class="detail-top">
+                            <img class="detail-img" src="${ex.img}" onerror="this.src='${PH}'" alt="${ex.name}">
+                            <div class="detail-meta">
+                                <div class="detail-name">${ex.name}</div>
+                                <div class="detail-location">📍 ${ex.loc}</div>
+                            </div>
+                        </div>
+                        <p class="detail-desc">${ex.desc}</p>
+                    </div>
+                    <div class="model-viewer-container">
+                        <model-viewer id="modelViewer" src="${ex.model3d}" ar camera-controls auto-rotate 
+                            camera-orbit="0deg 75deg 3m" touch-action="pan-y" interaction-prompt="none"
+                            exposure="1.1" shadow-intensity="0.4"></model-viewer>
+                        <div class="model-controls">
+                            <button class="model-btn" id="btnL">↶ ЛЕВО</button>
+                            <button class="model-btn" id="btnR">↷ ПРАВО</button>
+                            <button class="model-btn" id="btnU">↑ ВВЕРХ</button>
+                            <button class="model-btn" id="btnD">↓ ВНИЗ</button>
+                            <button class="model-btn" id="btnZI">➕ ПРИБЛИЗИТЬ</button>
+                            <button class="model-btn" id="btnZO">➖ ОТДАЛИТЬ</button>
+                            <button class="model-btn gesture-toggle" id="gestureToggleBtn">🖐️ ЖЕСТЫ ВКЛ</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="gesture-instructions" id="gestureInfoBox">
+                    <div class="instructions-title">🎮 УПРАВЛЕНИЕ ЖЕСТАМИ (через камеру)</div>
+                    <div class="instruction-item">✋ <strong>РАСКРЫТАЯ ЛАДОНЬ</strong> — двигайте рукой, чтобы вращать 3D-объект</div>
+                    <div class="instruction-item">🤏 <strong>ЩИПОК (большой + указательный)</strong> — ПРИБЛИЖЕНИЕ</div>
+                    <div class="instruction-item">✊ <strong>КУЛАК</strong> — ОТДАЛЕНИЕ</div>
+                    <div class="instruction-item">📹 Окно камеры появится после активации жестов</div>
+                </div>
+            `;
+            setTimeout(() => {
+                document.getElementById('btnL')?.addEventListener('click', rotateLeft);
+                document.getElementById('btnR')?.addEventListener('click', rotateRight);
+                document.getElementById('btnU')?.addEventListener('click', rotateUp);
+                document.getElementById('btnD')?.addEventListener('click', rotateDown);
+                document.getElementById('btnZI')?.addEventListener('click', zoomIn);
+                document.getElementById('btnZO')?.addEventListener('click', zoomOut);
+                const toggleBtn = document.getElementById('gestureToggleBtn');
+                if (toggleBtn) toggleBtn.onclick = () => toggleGestures();
+            }, 10);
+            return detailDiv;
+        }
+
+        function goBack() {
+            if (currentState.screen === "detail") currentState.screen = "list";
+            else if (currentState.screen === "list") currentState.screen = "home";
+            render();
+        }
+
+        // ------------------- МЕДИАПАЙП ЖЕСТЫ (ПОЛНОСТЬЮ РАБОЧИЕ) ------------------
+        async function toggleGestures() {
+            const btn = document.getElementById('gestureToggleBtn');
+            const previewDiv = document.getElementById('cameraPreview');
+            const instrPanel = document.getElementById('gestureInfoBox');
+            if (!gestureEnabled) {
+                gestureEnabled = true;
+                if (btn) btn.classList.add('active');
+                if (previewDiv) previewDiv.classList.add('active');
+                if (instrPanel) instrPanel.style.background = "#FFF4E4";
+                await initMediaPipeHands();
+            } else {
+                gestureEnabled = false;
+                if (btn) btn.classList.remove('active');
+                if (previewDiv) previewDiv.classList.remove('active');
+                if (instrPanel) instrPanel.style.background = "#FCF5EA";
+                if (cameraCtrl) {
+                    try { await cameraCtrl.stop(); } catch(e) {}
+                }
+                if (videoElem && videoElem.srcObject) {
+                    videoElem.srcObject.getTracks().forEach(t => t.stop());
+                    videoElem.srcObject = null;
+                }
+                document.getElementById('gestureStatus').innerText = "⛔ Жесты выкл";
+            }
+        }
+
+        async function initMediaPipeHands() {
+            videoElem = document.getElementById('inputVideo');
+            const statusSpan = document.getElementById('gestureStatus');
+            if (!videoElem) return;
+            try {
+                statusSpan.innerText = "🎥 Запрос камеры...";
+                if (handsModule) {
+                    try { await cameraCtrl?.stop(); } catch(e) {}
+                }
+                handsModule = new Hands({
+                    locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+                });
+                handsModule.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.68,
+                    minTrackingConfidence: 0.7
+                });
+                handsModule.onResults(onHandsDetected);
+                cameraCtrl = new Camera(videoElem, {
+                    onFrame: async () => { if (gestureEnabled && handsModule) await handsModule.send({image: videoElem}); },
+                    width: 380,
+                    height: 280
+                });
+                await cameraCtrl.start();
+                statusSpan.innerText = "🤖 Рука отслеживается";
+            } catch(err) {
+                console.error("Ошибка камеры/медиапайп:", err);
+                statusSpan.innerText = "❌ Нет доступа к камере";
+                gestureEnabled = false;
+                document.getElementById('gestureToggleBtn')?.classList.remove('active');
+                document.getElementById('cameraPreview')?.classList.remove('active');
+            }
+        }
+
+        function detectRobustPose(landmarks) {
+            if (!landmarks || landmarks.length < 21) return "none";
+            const palmMid = { x: (landmarks[0].x + landmarks[9].x)/2, y: (landmarks[0].y + landmarks[9].y)/2 };
+            const d8 = Math.hypot(landmarks[8].x - palmMid.x, landmarks[8].y - palmMid.y);
+            const d12 = Math.hypot(landmarks[12].x - palmMid.x, landmarks[12].y - palmMid.y);
+            const d16 = Math.hypot(landmarks[16].x - palmMid.x, landmarks[16].y - palmMid.y);
+            const d20 = Math.hypot(landmarks[20].x - palmMid.x, landmarks[20].y - palmMid.y);
+            const avgSpread = (d8 + d12 + d16 + d20)/4;
+            if (avgSpread < 0.085) return "fist";
+            const pinchDist = Math.hypot(landmarks[4].x - landmarks[8].x, landmarks[4].y - landmarks[8].y);
+            if (pinchDist < 0.045) return "pinch";
+            if (avgSpread > 0.19) return "palm";
+            return "none";
+        }
+
+        function onHandsDetected(results) {
+            const mv = getModel();
+            if (!mv || !gestureEnabled) return;
+            const statusEl = document.getElementById('gestureStatus');
+            if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+                if(statusEl) statusEl.innerText = "🤚 Рука не видна";
+                gestureLast.lastX = null; gestureLast.lastY = null;
+                return;
+            }
+            const lm = results.multiHandLandmarks[0];
+            const pose = detectRobustPose(lm);
+            const currX = lm[9].x, currY = lm[9].y;
+            const now = Date.now();
+
+            if (pose === "palm") {
+                statusEl.innerText = "✋ Вращение (двигай рукой)";
+                if (gestureLast.lastX !== null && gestureLast.lastY !== null) {
+                    let dx = (currX - gestureLast.lastX) * 6.4;
+                    let dy = (currY - gestureLast.lastY) * 4.2;
+                    if (Math.abs(dx) > 0.008 || Math.abs(dy) > 0.008) {
+                        const orb = mv.getCameraOrbit();
+                        let newTheta = orb.theta + dx;
+                        let newPhi = Math.min(CAM_LIM.maxPhi, Math.max(CAM_LIM.minPhi, orb.phi + dy));
+                        mv.cameraOrbit = `${newTheta}rad ${newPhi}rad ${orb.radius}m`;
+                    }
+                }
+            } 
+            else if (pose === "pinch") {
+                statusEl.innerText = "🤏 Приближение (щипок)";
+                if (now - gestureLast.lastZoomTime > 110) { zoomIn(); gestureLast.lastZoomTime = now; }
+            }
+            else if (pose === "fist") {
+                statusEl.innerText = "✊ Отдаление (кулак)";
+                if (now - gestureLast.lastZoomTime > 110) { zoomOut(); gestureLast.lastZoomTime = now; }
+            }
+            else {
+                statusEl.innerText = "🖐️ Покажи: ладонь / щипок / кулак";
+            }
+            gestureLast.lastX = currX;
+            gestureLast.lastY = currY;
+        }
+
+        window.addEventListener('load', () => {
+            render();
+        });
+    })();
+</script>
+</body>
+</html>
+```
